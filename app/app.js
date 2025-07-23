@@ -242,4 +242,16 @@ document.addEventListener('DOMContentLoaded', () => {
     playPauseBtn.addEventListener('click', playPauseToggle);
     nextBtn.addEventListener('click', playNext);
     prevBtn.addEventListener('click', playPrev);
+    stopBtn.addEventListener('click', stopTrack);;
+// ... (casi al final del archivo, antes del cierre del addEventListener 'DOMContentLoaded')
+
+    // --- NUEVA FUNCIÓN STOP ---
+    function stopTrack() {
+        if (sound) {
+            sound.stop(); // Howler.js detiene y resetea el audio a 0
+            // La función onPause se llamará automáticamente, pero también reseteamos la barra
+            progressBar.value = 0;
+        }
+    }
+
 });
