@@ -83,3 +83,68 @@ body {
 #playlist li:hover {
     background-color: #f0f0f0;
 }
+/* ... (Estilos anteriores) ... */
+
+/* ESTILOS PARA LA CARÁTULA */
+.artwork-container {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+#album-art {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin: 0 auto;
+    display: block;
+}
+
+.download-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.download-btn:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* ESTILOS PARA EL ECUALIZADOR */
+.equalizer-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+.eq-band {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+}
+
+.eq-band label {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.eq-band input[type="range"] {
+    width: 100%;
+}
+
+/* Ajustes menores */
+#playlist {
+    max-height: 120px;
+}
