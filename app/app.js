@@ -1,3 +1,11 @@
+// ... al principio de app.js
+document.addEventListener('DOMContentLoaded', () => {
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const stopBtn = document.getElementById('stop-btn'); // <-- AÑADIR ESTA LÍNEA
+    const progressBar = document.getElementById('progress-bar');
+    // ... resto de constantes
 document.addEventListener('DOMContentLoaded', () => {
     const playPauseBtn = document.getElementById('play-pause-btn');
     const prevBtn = document.getElementById('prev-btn');
