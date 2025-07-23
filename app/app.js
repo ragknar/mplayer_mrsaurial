@@ -1,15 +1,8 @@
-// ... al principio de app.js
 document.addEventListener('DOMContentLoaded', () => {
     const playPauseBtn = document.getElementById('play-pause-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const stopBtn = document.getElementById('stop-btn'); // <-- AÑADIR ESTA LÍNEA
-    const progressBar = document.getElementById('progress-bar');
-    // ... resto de constantes
-document.addEventListener('DOMContentLoaded', () => {
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
     const progressBar = document.getElementById('progress-bar');
     const trackTitle = document.getElementById('track-title');
     const fileInput = document.getElementById('file-input');
@@ -178,6 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function playPauseToggle() {
         isPlaying ? pauseTrack() : playTrack();
     }
+    // --- NUEVA FUNCIÓN STOP ---
+    function stopTrack() {
+        if (sound) {
+            sound.stop(); // Howler.js detiene y resetea el audio a 0
+            // La función onPause se llamará automáticamente, pero también reseteamos la barra
+            progressBar.value = 0;
+        }
+    }
 
     function playNext() {
         const nextIndex = (currentTrackIndex + 1) % playlist.length;
@@ -244,14 +245,5 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn.addEventListener('click', playPrev);
     stopBtn.addEventListener('click', stopTrack);;
 // ... (casi al final del archivo, antes del cierre del addEventListener 'DOMContentLoaded')
-
-    // --- NUEVA FUNCIÓN STOP ---
-    function stopTrack() {
-        if (sound) {
-            sound.stop(); // Howler.js detiene y resetea el audio a 0
-            // La función onPause se llamará automáticamente, pero también reseteamos la barra
-            progressBar.value = 0;
-        }
-    }
 
 });
