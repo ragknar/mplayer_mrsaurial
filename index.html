@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Música Hi-Res</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="music-player">
+        <h1 id="track-title">Selecciona una canción</h1>
+        <div class="controls">
+            <button id="prev-btn">Anterior</button>
+            <button id="play-pause-btn">Play</button>
+            <button id="next-btn">Siguiente</button>
+        </div>
+        <div class="progress-container">
+            <input type="range" id="progress-bar" value="0" step="1">
+        </div>
+        <input type="file" id="file-input" accept=".flac,.dsf,.dff" multiple>
+        <ul id="playlist"></ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
