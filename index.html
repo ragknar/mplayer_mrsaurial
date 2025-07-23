@@ -20,6 +20,15 @@
         <input type="file" id="file-input" accept=".flac,.dsf,.dff" multiple>
         <ul id="playlist"></ul>
     </div>
+    <div class="progress-container">
+            <input type="range" id="progress-bar" value="0" step="1">
+        </div>
+
+        <label for="file-input">Selecciona archivos (.flac, .cue, etc.):</label><br>
+        <input type="file" id="file-input" accept=".flac,.dsf,.dff,.cue,.wav" multiple>
+        
+        <ul id="playlist"></ul>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script src="app/app.js"></script>
