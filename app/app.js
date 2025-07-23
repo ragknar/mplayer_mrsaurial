@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let playlist = [];
     let cueData = null;
     let audioFile = null;
-    let imageFile = null; // Archivo de imagen seleccionado por el usuario
+    let imageFile = null;
     let currentTrackIndex = 0;
     let isPlaying = false;
     let updateInterval;
@@ -30,16 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEqualizer() {
         if (!Howler.ctx) return;
         const audioCtx = Howler.ctx;
-        bassFilter = audioCtx.createBiquadFilter();
-        midFilter = audioCtx.createBiquadFilter();
-        trebleFilter = audioCtx.createBiquadFilter();
+        bassFilter = audioCtx.createBiquadFilter(); midFilter = audioCtx.createBiquadFilter(); trebleFilter = audioCtx.createBiquadFilter();
         bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 250;
         midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = Math.SQRT1_2;
         trebleFilter.type = 'highshelf'; trebleFilter.frequency.value = 4000;
-        Howler.masterGain.connect(bassFilter);
-        bassFilter.connect(midFilter);
-        midFilter.connect(trebleFilter);
-        trebleFilter.connect(audioCtx.destination);
+        Howler.masterGain.connect(bassFilter); bassFilter.connect(midFilter); midFilter.connect(trebleFilter); trebleFilter.connect(audioCtx.destination);
         bassSlider.addEventListener('input', (e) => bassFilter.gain.value = parseInt(e.target.value));
         midSlider.addEventListener('input', (e) => midFilter.gain.value = parseInt(e.target.value));
         trebleSlider.addEventListener('input', (e) => trebleFilter.gain.value = parseInt(e.target.value));
@@ -69,66 +64,64 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (e) => {
                 cueData = parseCueSheet(e.target.result);
                 audioFile = audioFilesAndCues.find(f => f.name === cueData.audioFile);
-                if (audioFile) { playlist = cueData.tracks; renderPlaylist(); loadTrack(0); } else { alert(`Error: Archivo de audio "${cueData.audioFile}" no encontrado.`); resetPlayer(); }
+                if (audioFile) {
+                    playlist = cueData.tracks;
+                    renderPlaylist();
+                    loadTrack(0);
+                } else {
+                    alert(`Advertencia: No se encontró el audio "${cueData.audioFile}" del CUE. Cargando otros archivos individualmente.`);
+                    cueData = null; audioFile = null;
+                    playlist = audioFilesAndCues.filter(f => !f.name.toLowerCase().endsWith('.cue'));
+                    renderPlaylist();
+                    if (playlist.length > 0) loadTrack(0);
+                }
             };
             reader.readAsText(cueFile);
         } else {
-            playlist = audioFilesAndCues; renderPlaylist(); if (playlist.length > 0) { loadTrack(0); }
+            playlist = audioFilesAndCues;
+            renderPlaylist();
+            if (playlist.length > 0) loadTrack(0);
         }
     });
     
-    /**
-     * NUEVO: Actualiza la carátula, priorizando imagen manual sobre la incrustada.
-     * @param {File} audioTrackFile - El archivo de audio del que se extraerán los metadatos.
-     */
     function updateAlbumArt(audioTrackFile) {
-        // Prioridad 1: Imagen seleccionada manualmente
+        if (!audioTrackFile) return;
+        resetArtToPlaceholder();
+        
         if (imageFile) {
             const imageURL = URL.createObjectURL(imageFile);
             albumArt.src = imageURL;
-            downloadArtBtn.href = imageURL;
-            downloadArtBtn.download = imageFile.name;
-            downloadArtBtn.style.display = 'block';
+            downloadArtBtn.href = imageURL; downloadArtBtn.download = imageFile.name; downloadArtBtn.style.display = 'block';
             return;
         }
 
-        // Prioridad 2: Leer metadatos del archivo de audio
+        if (typeof window.jsmediatags === 'undefined') {
+            console.error("Librería jsmediatags no cargada.");
+            return;
+        }
+
         jsmediatags.read(audioTrackFile, {
             onSuccess: (tag) => {
                 const picture = tag.tags.picture;
                 if (picture) {
                     let base64String = "";
-                    for (let i = 0; i < picture.data.length; i++) {
-                        base64String += String.fromCharCode(picture.data[i]);
-                    }
+                    for (let i = 0; i < picture.data.length; i++) { base64String += String.fromCharCode(picture.data[i]); }
                     const dataUrl = `data:${picture.format};base64,${window.btoa(base64String)}`;
-                    albumArt.src = dataUrl;
-                    downloadArtBtn.href = dataUrl;
-                    downloadArtBtn.download = 'cover.jpg';
-                    downloadArtBtn.style.display = 'block';
-                } else {
-                    resetArtToPlaceholder();
+                    albumArt.src = dataUrl; downloadArtBtn.href = dataUrl; downloadArtBtn.download = 'cover.jpg'; downloadArtBtn.style.display = 'block';
                 }
             },
-            onError: (error) => {
-                console.log('No se pudieron leer los metadatos:', error.type, error.info);
-                resetArtToPlaceholder();
-            }
+            onError: (error) => { console.log('No se pudo leer carátula incrustada:', error.info); }
         });
     }
     
     function resetArtToPlaceholder() {
-        albumArt.src = 'placeholder.png';
-        downloadArtBtn.style.display = 'none';
-        downloadArtBtn.href = '#';
+        albumArt.src = 'placeholder.png'; downloadArtBtn.style.display = 'none'; downloadArtBtn.href = '#';
     }
     
     function resetPlayer() {
         if (sound) { sound.stop(); sound.unload(); sound = null; }
         playlist = []; cueData = null; audioFile = null; imageFile = null;
-        playlistElement.innerHTML = '';
-        trackTitle.textContent = 'Selecciona una canción';
-        progressBar.value = 0;
+        playlistElement.innerHTML = ''; trackTitle.textContent = 'Selecciona una canción'; progressBar.value = 0;
         resetArtToPlaceholder();
     }
     
@@ -143,25 +136,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadTrack(index) {
-        if (sound && (!cueData || sound.src !== URL.createObjectURL(audioFile))) {
-             sound.unload(); sound = null;
-        }
+        if (sound) { sound.unload(); sound = null; }
         currentTrackIndex = index;
         const currentItem = playlist[currentTrackIndex];
+        let fileToPlay, fileForArt;
 
         if (cueData && audioFile) {
             trackTitle.textContent = currentItem.title;
-            updateAlbumArt(audioFile); // Actualizar carátula para el álbum CUE
-            if (!sound) {
-                const fileURL = URL.createObjectURL(audioFile);
-                sound = new Howl({ src: [fileURL], format: [audioFile.name.split('.').pop()], html5: true, onplay: onPlay, onpause: onPause, onstop: onStop, onend: playNext });
-            }
+            fileToPlay = audioFile;
+            fileForArt = audioFile;
         } else {
             trackTitle.textContent = currentItem.name;
-            updateAlbumArt(currentItem); // Actualizar carátula para la pista individual
-            const fileURL = URL.createObjectURL(currentItem);
-            sound = new Howl({ src: [fileURL], format: [currentItem.name.split('.').pop()], html5: true, onplay: onPlay, onpause: onPause, onstop: onStop, onend: playNext });
+            fileToPlay = currentItem;
+            fileForArt = currentItem;
         }
+        
+        const fileURL = URL.createObjectURL(fileToPlay);
+        sound = new Howl({
+            src: [fileURL],
+            format: [fileToPlay.name.split('.').pop()],
+            html5: true,
+            onplay: onPlay, onpause: onPause, onstop: onStop, onend: playNext
+        });
+
+        // INTENTA ACTUALIZAR LA CARÁTULA DESPUÉS DE PREPARAR EL SONIDO
+        updateAlbumArt(fileForArt);
     }
     
     function playTrack() {
@@ -184,11 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sound || !sound.playing()) return;
         const duration = sound.duration(); const seek = sound.seek() || 0;
         if (cueData) {
-            const currentTrack = playlist[currentTrackIndex];
-            const nextTrack = playlist[currentTrackIndex + 1];
-            const trackStart = currentTrack.startTime;
-            const trackEnd = nextTrack ? nextTrack.startTime : duration;
-            if(seek >= trackEnd && currentTrackIndex < playlist.length - 1) { playNext(); return; }
+            const currentTrack = playlist[currentTrackIndex]; const nextTrack = playlist[currentTrackIndex + 1];
+            const trackStart = currentTrack.startTime; const trackEnd = nextTrack ? nextTrack.startTime : duration;
+            if (seek >= trackEnd && currentTrackIndex < playlist.length - 1) { playNext(); return; }
             const trackDuration = trackEnd - trackStart; const displaySeek = seek - trackStart;
             progressBar.value = (displaySeek / trackDuration) * 100 || 0;
         } else {
@@ -199,8 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
     progressBar.addEventListener('input', function() {
         if (!sound) return; const duration = sound.duration();
         if (cueData) {
-             const currentTrack = playlist[currentTrackIndex]; const nextTrack = playlist[currentTrackIndex + 1]; const trackStart = currentTrack.startTime; const trackEnd = nextTrack ? nextTrack.startTime : duration; const trackDuration = trackEnd - trackStart;
-             sound.seek(trackStart + (trackDuration * (this.value / 100)));
+            const currentTrack = playlist[currentTrackIndex]; const nextTrack = playlist[currentTrackIndex + 1]; const trackStart = currentTrack.startTime; const trackEnd = nextTrack ? nextTrack.startTime : duration; const trackDuration = trackEnd - trackStart;
+            sound.seek(trackStart + (trackDuration * (this.value / 100)));
         } else {
             sound.seek((this.value / 100) * duration);
         }
