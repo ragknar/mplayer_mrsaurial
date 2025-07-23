@@ -1,16 +1,14 @@
-      
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reproductor de Música Hi-Res Pro</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="music-player">
         
-        <!-- Carátula del Álbum -->
         <div class="artwork-container">
             <img id="album-art" src="placeholder.png" alt="Carátula del Álbum">
             <a id="download-art-btn" class="download-btn" download style="display: none;">Descargar Carátula</a>
@@ -29,7 +27,6 @@
             <input type="range" id="progress-bar" value="0" step="1">
         </div>
 
-        <!-- Ecualizador -->
         <div class="equalizer-container">
             <div class="eq-band">
                 <label>Graves</label>
@@ -53,13 +50,8 @@
         <ul id="playlist"></ul>
     </div>
 
-    <!-- LIBRERÍAS EXTERNAS (jsmediatags AÑADIDO) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.8/dist/jsmediatags.min.js"></script>
-    
-    <!-- NUESTRO SCRIPT -->
-    <script src="app/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
-
-    
