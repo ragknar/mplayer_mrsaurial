@@ -5,87 +5,19 @@ body {
     height: 100vh;
     background-color: #f0f0f0;
     font-family: sans-serif;
+    color: #333;
 }
 
 .music-player {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 350px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 380px;
     text-align: center;
 }
 
-.controls button {
-    margin: 0 5px; /* Reducimos el margen para que quepan bien */
-    padding: 10px 15px;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-/* Estilo para el nuevo botón Stop */
-#stop-btn {
-    background-color: #dc3545; /* Rojo para indicar "parar" */
-}
-
-.progress-container {
-    margin-top: 20px;
-}
-
-#progress-bar {
-    width: 100%;
-}
-
-/* --- ESTILOS PARA EL NUEVO SELECTOR DE ARCHIVOS --- */
-.file-input-container {
-    margin: 20px 0;
-}
-
-.file-input-hidden {
-    display: none; /* Ocultamos el input por defecto que es feo */
-}
-
-.file-input-label {
-    background-color: #28a745; /* Verde para una acción positiva */
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: inline-block;
-    font-size: 16px;
-}
-
-.file-input-label:hover {
-    background-color: #218838;
-}
-
-/* --- ESTILOS PARA LA LISTA DE REPRODUCCIÓN --- */
-#playlist {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
-    max-height: 150px; /* Ajustamos altura */
-    overflow-y: auto;
-    border: 1px solid #ddd;
-}
-
-#playlist li {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-}
-
-#playlist li:hover {
-    background-color: #f0f0f0;
-}
-/* ... (Estilos anteriores) ... */
-
-/* ESTILOS PARA LA CARÁTULA */
+/* CARÁTULA */
 .artwork-container {
     margin-bottom: 15px;
     position: relative;
@@ -94,11 +26,13 @@ body {
 #album-art {
     width: 100%;
     max-width: 250px;
-    height: auto;
+    height: 250px; /* Altura fija */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
     border-radius: 5px;
     border: 1px solid #ddd;
     margin: 0 auto;
     display: block;
+    background-color: #eee;
 }
 
 .download-btn {
@@ -112,20 +46,55 @@ body {
     font-size: 12px;
     text-decoration: none;
     cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
 }
 
 .download-btn:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 1;
 }
 
-/* ESTILOS PARA EL ECUALIZADOR */
+/* CONTROLES */
+.controls button {
+    margin: 0 5px;
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.controls button:hover {
+    background-color: #0056b3;
+}
+
+#stop-btn {
+    background-color: #dc3545;
+}
+#stop-btn:hover {
+    background-color: #c82333;
+}
+
+.progress-container {
+    margin-top: 20px;
+}
+
+#progress-bar {
+    width: 100%;
+}
+
+/* ECUALIZADOR */
 .equalizer-container {
     display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    padding: 10px;
+    justify-content: space-around;
+    margin-top: 20px;
+    padding: 15px 10px;
     border: 1px solid #eee;
     border-radius: 5px;
+    background-color: #fafafa;
 }
 
 .eq-band {
@@ -144,7 +113,55 @@ body {
     width: 100%;
 }
 
-/* Ajustes menores */
+/* SELECTOR DE ARCHIVOS */
+.file-input-container {
+    margin: 20px 0;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+.file-input-label {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.file-input-label:hover {
+    background-color: #218838;
+}
+
+/* LISTA DE REPRODUCCIÓN */
 #playlist {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
     max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#playlist li {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#playlist li:last-child {
+    border-bottom: none;
+}
+
+#playlist li:hover {
+    background-color: #f0f0f0;
 }
