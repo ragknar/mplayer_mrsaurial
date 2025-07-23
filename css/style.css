@@ -17,7 +17,6 @@ body {
     text-align: center;
 }
 
-/* CARÁTULA */
 .artwork-container {
     margin-bottom: 15px;
     position: relative;
@@ -26,8 +25,8 @@ body {
 #album-art {
     width: 100%;
     max-width: 250px;
-    height: 250px; /* Altura fija */
-    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    height: 250px;
+    object-fit: cover;
     border-radius: 5px;
     border: 1px solid #ddd;
     margin: 0 auto;
@@ -54,7 +53,6 @@ body {
     opacity: 1;
 }
 
-/* CONTROLES */
 .controls button {
     margin: 0 5px;
     padding: 10px 15px;
@@ -86,7 +84,6 @@ body {
     width: 100%;
 }
 
-/* ECUALIZADOR */
 .equalizer-container {
     display: flex;
     justify-content: space-around;
@@ -113,7 +110,6 @@ body {
     width: 100%;
 }
 
-/* SELECTOR DE ARCHIVOS */
 .file-input-container {
     margin: 20px 0;
 }
@@ -137,7 +133,6 @@ body {
     background-color: #218838;
 }
 
-/* LISTA DE REPRODUCCIÓN */
 #playlist {
     list-style: none;
     padding: 0;
