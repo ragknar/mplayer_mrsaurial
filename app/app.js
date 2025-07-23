@@ -19,201 +19,146 @@ document.addEventListener('DOMContentLoaded', () => {
     let playlist = [];
     let cueData = null;
     let audioFile = null;
-    let imageFile = null;
+    let imageFile = null; // Archivo de imagen seleccionado por el usuario
     let currentTrackIndex = 0;
     let isPlaying = false;
     let updateInterval;
 
-    // --- Variables de Web Audio API para el Ecualizador ---
+    // --- Web Audio API para el Ecualizador ---
     let bassFilter, midFilter, trebleFilter;
 
-    /**
-     * Configura la cadena de filtros del ecualizador.
-     */
     function setupEqualizer() {
+        if (!Howler.ctx) return;
         const audioCtx = Howler.ctx;
-
-        // Crear los 3 filtros
         bassFilter = audioCtx.createBiquadFilter();
         midFilter = audioCtx.createBiquadFilter();
         trebleFilter = audioCtx.createBiquadFilter();
-
-        // Configurar tipo de filtro y frecuencias
-        bassFilter.type = 'lowshelf';
-        bassFilter.frequency.value = 250; // Frecuencias graves por debajo de 250 Hz
-
-        midFilter.type = 'peaking';
-        midFilter.frequency.value = 1000; // Frecuencias medias alrededor de 1 kHz
-        midFilter.Q.value = Math.SQRT1_2; // Calidad del filtro
-
-        trebleFilter.type = 'highshelf';
-        trebleFilter.frequency.value = 4000; // Frecuencias agudas por encima de 4 kHz
-
-        // Conectar la cadena de audio:
-        // La salida principal de Howler se conecta al primer filtro (graves)
-        // Graves -> Medios -> Agudos -> Salida final (altavoces)
+        bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 250;
+        midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = Math.SQRT1_2;
+        trebleFilter.type = 'highshelf'; trebleFilter.frequency.value = 4000;
         Howler.masterGain.connect(bassFilter);
         bassFilter.connect(midFilter);
         midFilter.connect(trebleFilter);
         trebleFilter.connect(audioCtx.destination);
-
-        // Asignar eventos a los sliders del ecualizador
         bassSlider.addEventListener('input', (e) => bassFilter.gain.value = parseInt(e.target.value));
         midSlider.addEventListener('input', (e) => midFilter.gain.value = parseInt(e.target.value));
         trebleSlider.addEventListener('input', (e) => trebleFilter.gain.value = parseInt(e.target.value));
     }
 
-    // Inicializar el ecualizador tan pronto como el contexto de audio esté listo
-    if (Howler.ctx) {
-        setupEqualizer();
-    } else {
-        Howler.once('ready', setupEqualizer);
-    }
-    
-    // El resto del código es muy similar, con modificaciones para manejar la imagen.
-    // ... (función parseCueSheet sin cambios) ...
+    if (Howler.ctx) { setupEqualizer(); } else { Howler.once('ready', setupEqualizer); }
+
     function parseCueSheet(text) {
-        const lines = text.split('\n');
-        const data = { audioFile: null, tracks: [] };
-        let currentTrack = null;
-
-        const fileRegex = /FILE\s+"([^"]+)"/;
-        const trackRegex = /TRACK\s+(\d+)\s+AUDIO/;
-        const titleRegex = /TITLE\s+"([^"]+)"/;
-        const indexRegex = /INDEX\s+01\s+(\d{2}):(\d{2}):(\d{2})/;
-
+        const lines = text.split('\n'); const data = { audioFile: null, tracks: [] }; let currentTrack = null;
+        const fileRegex = /FILE\s+"([^"]+)"/; const trackRegex = /TRACK\s+(\d+)\s+AUDIO/; const titleRegex = /TITLE\s+"([^"]+)"/; const indexRegex = /INDEX\s+01\s+(\d{2}):(\d{2}):(\d{2})/;
         lines.forEach(line => {
-            let match;
-            if ((match = line.match(fileRegex))) {
-                data.audioFile = match[1];
-            } else if ((match = line.match(trackRegex))) {
-                if (currentTrack) data.tracks.push(currentTrack);
-                currentTrack = { id: parseInt(match[1]), title: 'Sin Título', startTime: 0 };
-            } else if (currentTrack && (match = line.match(titleRegex))) {
-                currentTrack.title = match[1];
-            } else if (currentTrack && (match = line.match(indexRegex))) {
-                const minutes = parseInt(match[1]);
-                const seconds = parseInt(match[2]);
-                const frames = parseInt(match[3]);
-                currentTrack.startTime = (minutes * 60) + seconds + (frames / 75.0);
-            }
+            let match; if ((match = line.match(fileRegex))) { data.audioFile = match[1]; } else if ((match = line.match(trackRegex))) { if (currentTrack) data.tracks.push(currentTrack); currentTrack = { id: parseInt(match[1]), title: 'Sin Título', startTime: 0 }; } else if (currentTrack && (match = line.match(titleRegex))) { currentTrack.title = match[1]; } else if (currentTrack && (match = line.match(indexRegex))) { currentTrack.startTime = (parseInt(match[1]) * 60) + parseInt(match[2]) + (parseInt(match[3]) / 75.0); }
         });
-        if (currentTrack) data.tracks.push(currentTrack);
-        return data;
+        if (currentTrack) data.tracks.push(currentTrack); return data;
     }
 
-    /**
-     * Maneja el evento de cambio del input de archivos.
-     */
     fileInput.addEventListener('change', (event) => {
         const files = Array.from(event.target.files);
         resetPlayer();
 
-        // Buscar una imagen entre los archivos seleccionados
-        imageFile = files.find(f => f.type.startsWith('image/'));
-        if (imageFile) {
-            handleImageFile(imageFile);
-        }
-
-        const audioFiles = files.filter(f => !f.type.startsWith('image/'));
-        const cueFile = audioFiles.find(f => f.name.toLowerCase().endsWith('.cue'));
+        imageFile = files.find(f => f.type.startsWith('image/')) || null;
+        const audioFilesAndCues = files.filter(f => !f.type.startsWith('image/'));
+        const cueFile = audioFilesAndCues.find(f => f.name.toLowerCase().endsWith('.cue'));
 
         if (cueFile) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 cueData = parseCueSheet(e.target.result);
-                audioFile = audioFiles.find(f => f.name === cueData.audioFile);
-
-                if (audioFile) {
-                    playlist = cueData.tracks;
-                    renderPlaylist();
-                    loadTrack(0);
-                } else {
-                    alert(`Error: No se encontró el archivo "${cueData.audioFile}".`);
-                    // Fallback a carga normal
-                    cueData = null;
-                    playlist = audioFiles.filter(f => !f.name.toLowerCase().endsWith('.cue'));
-                    renderPlaylist();
-                    if(playlist.length > 0) loadTrack(0);
-                }
+                audioFile = audioFilesAndCues.find(f => f.name === cueData.audioFile);
+                if (audioFile) { playlist = cueData.tracks; renderPlaylist(); loadTrack(0); } else { alert(`Error: Archivo de audio "${cueData.audioFile}" no encontrado.`); resetPlayer(); }
             };
             reader.readAsText(cueFile);
         } else {
-            cueData = null;
-            audioFile = null;
-            playlist = audioFiles;
-            renderPlaylist();
-            if (playlist.length > 0) {
-                loadTrack(0);
-            }
+            playlist = audioFilesAndCues; renderPlaylist(); if (playlist.length > 0) { loadTrack(0); }
         }
     });
     
     /**
-     * Muestra la imagen seleccionada y prepara el botón de descarga.
-     * @param {File} file - El archivo de imagen.
+     * NUEVO: Actualiza la carátula, priorizando imagen manual sobre la incrustada.
+     * @param {File} audioTrackFile - El archivo de audio del que se extraerán los metadatos.
      */
-    function handleImageFile(file) {
-        const imageURL = URL.createObjectURL(file);
-        albumArt.src = imageURL;
-        downloadArtBtn.href = imageURL;
-        downloadArtBtn.download = file.name;
-        downloadArtBtn.style.display = 'inline-block';
-    }
-
-    /**
-     * Resetea el reproductor a su estado inicial.
-     */
-    function resetPlayer() {
-        if (sound) {
-            sound.stop();
-            sound.unload();
-            sound = null;
+    function updateAlbumArt(audioTrackFile) {
+        // Prioridad 1: Imagen seleccionada manualmente
+        if (imageFile) {
+            const imageURL = URL.createObjectURL(imageFile);
+            albumArt.src = imageURL;
+            downloadArtBtn.href = imageURL;
+            downloadArtBtn.download = imageFile.name;
+            downloadArtBtn.style.display = 'block';
+            return;
         }
-        playlist = [];
+
+        // Prioridad 2: Leer metadatos del archivo de audio
+        jsmediatags.read(audioTrackFile, {
+            onSuccess: (tag) => {
+                const picture = tag.tags.picture;
+                if (picture) {
+                    let base64String = "";
+                    for (let i = 0; i < picture.data.length; i++) {
+                        base64String += String.fromCharCode(picture.data[i]);
+                    }
+                    const dataUrl = `data:${picture.format};base64,${window.btoa(base64String)}`;
+                    albumArt.src = dataUrl;
+                    downloadArtBtn.href = dataUrl;
+                    downloadArtBtn.download = 'cover.jpg';
+                    downloadArtBtn.style.display = 'block';
+                } else {
+                    resetArtToPlaceholder();
+                }
+            },
+            onError: (error) => {
+                console.log('No se pudieron leer los metadatos:', error.type, error.info);
+                resetArtToPlaceholder();
+            }
+        });
+    }
+    
+    function resetArtToPlaceholder() {
+        albumArt.src = 'placeholder.png';
+        downloadArtBtn.style.display = 'none';
+        downloadArtBtn.href = '#';
+    }
+    
+    function resetPlayer() {
+        if (sound) { sound.stop(); sound.unload(); sound = null; }
+        playlist = []; cueData = null; audioFile = null; imageFile = null;
         playlistElement.innerHTML = '';
         trackTitle.textContent = 'Selecciona una canción';
         progressBar.value = 0;
-        cueData = null;
-        audioFile = null;
-        imageFile = null;
-        albumArt.src = 'placeholder.png'; // Vuelve al placeholder
-        downloadArtBtn.style.display = 'none';
+        resetArtToPlaceholder();
     }
-
-    // --- El resto de las funciones (renderPlaylist, loadTrack, controles)
-    // permanecen muy similares, solo asegúrate de que onStop resetea todo bien.
     
     function renderPlaylist() {
         playlistElement.innerHTML = '';
         playlist.forEach((item, index) => {
             const li = document.createElement('li');
             li.textContent = item.title || item.name;
-            li.addEventListener('click', () => {
-                loadTrack(index);
-                playTrack();
-            });
+            li.addEventListener('click', () => { loadTrack(index); playTrack(); });
             playlistElement.appendChild(li);
         });
     }
 
     function loadTrack(index) {
         if (sound && (!cueData || sound.src !== URL.createObjectURL(audioFile))) {
-             sound.unload();
-             sound = null;
+             sound.unload(); sound = null;
         }
-        
         currentTrackIndex = index;
         const currentItem = playlist[currentTrackIndex];
 
         if (cueData && audioFile) {
             trackTitle.textContent = currentItem.title;
+            updateAlbumArt(audioFile); // Actualizar carátula para el álbum CUE
             if (!sound) {
                 const fileURL = URL.createObjectURL(audioFile);
                 sound = new Howl({ src: [fileURL], format: [audioFile.name.split('.').pop()], html5: true, onplay: onPlay, onpause: onPause, onstop: onStop, onend: playNext });
             }
         } else {
             trackTitle.textContent = currentItem.name;
+            updateAlbumArt(currentItem); // Actualizar carátula para la pista individual
             const fileURL = URL.createObjectURL(currentItem);
             sound = new Howl({ src: [fileURL], format: [currentItem.name.split('.').pop()], html5: true, onplay: onPlay, onpause: onPause, onstop: onStop, onend: playNext });
         }
@@ -221,20 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function playTrack() {
         if (!sound) return;
-        if (cueData) {
-            const track = playlist[currentTrackIndex];
-            sound.seek(track.startTime);
-        }
-        if (!sound.playing()) {
-            sound.play();
-        }
+        if (cueData) { sound.seek(playlist[currentTrackIndex].startTime); }
+        if (!sound.playing()) { sound.play(); }
     }
 
     function pauseTrack() { if (sound && sound.playing()) sound.pause(); }
     function stopTrack() { if (sound) sound.stop(); }
     function playPauseToggle() { if (!sound) return; sound.playing() ? pauseTrack() : playTrack(); }
-    function playNext() { const nextIndex = (currentTrackIndex + 1) % playlist.length; loadTrack(nextIndex); playTrack(); }
-    function playPrev() { const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length; loadTrack(prevIndex); playTrack(); }
+    function playNext() { const nextIndex = (currentTrackIndex + 1) % playlist.length; if(playlist.length > 0) { loadTrack(nextIndex); playTrack(); } }
+    function playPrev() { const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length; if(playlist.length > 0) { loadTrack(prevIndex); playTrack(); } }
 
     function onPlay() { playPauseBtn.textContent = 'Pause'; isPlaying = true; updateInterval = setInterval(updateProgress, 100); }
     function onPause() { playPauseBtn.textContent = 'Play'; isPlaying = false; clearInterval(updateInterval); }
@@ -242,16 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateProgress() {
         if (!sound || !sound.playing()) return;
-        const duration = sound.duration();
-        const seek = sound.seek() || 0;
+        const duration = sound.duration(); const seek = sound.seek() || 0;
         if (cueData) {
             const currentTrack = playlist[currentTrackIndex];
             const nextTrack = playlist[currentTrackIndex + 1];
             const trackStart = currentTrack.startTime;
             const trackEnd = nextTrack ? nextTrack.startTime : duration;
             if(seek >= trackEnd && currentTrackIndex < playlist.length - 1) { playNext(); return; }
-            const trackDuration = trackEnd - trackStart;
-            const displaySeek = seek - trackStart;
+            const trackDuration = trackEnd - trackStart; const displaySeek = seek - trackStart;
             progressBar.value = (displaySeek / trackDuration) * 100 || 0;
         } else {
             progressBar.value = (seek / duration) * 100 || 0;
@@ -259,16 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     progressBar.addEventListener('input', function() {
-        if (!sound) return;
-        const duration = sound.duration();
+        if (!sound) return; const duration = sound.duration();
         if (cueData) {
-             const currentTrack = playlist[currentTrackIndex];
-             const nextTrack = playlist[currentTrackIndex + 1];
-             const trackStart = currentTrack.startTime;
-             const trackEnd = nextTrack ? nextTrack.startTime : duration;
-             const trackDuration = trackEnd - trackStart;
-             const seekTo = trackStart + (trackDuration * (this.value / 100));
-             sound.seek(seekTo);
+             const currentTrack = playlist[currentTrackIndex]; const nextTrack = playlist[currentTrackIndex + 1]; const trackStart = currentTrack.startTime; const trackEnd = nextTrack ? nextTrack.startTime : duration; const trackDuration = trackEnd - trackStart;
+             sound.seek(trackStart + (trackDuration * (this.value / 100)));
         } else {
             sound.seek((this.value / 100) * duration);
         }
