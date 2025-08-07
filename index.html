@@ -3,61 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Audio Hi-Fi</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Reproductor de Audio Avanzado</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-    <div id="player-container">
-        <div id="album-art-container">
-            <img id="album-art" src="placeholder.png" alt="Carátula del Álbum">
-        </div>
-        <div id="track-info">
-            <h2 id="track-title">Carga un archivo</h2>
-            <p id="track-artist">...</p>
-        </div>
-
-        <div id="controls-container">
-            <button id="prev-btn">Anterior</button>
-            <button id="play-btn">Play</button>
-            <button id="stop-btn">Stop</button>
-            <button id="next-btn">Siguiente</button>
-        </div>
-
-        <div id="eq-container">
-            <div class="eq-band">
-                <label for="low-band">Bajos</label>
-                <input type="range" id="low-band" class="eq-slider" min="-20" max="20" value="0" step="1">
-            </div>
-            <div class="eq-band">
-                <label for="mid-band">Medios</label>
-                <input type="range" id="mid-band" class="eq-slider" min="-20" max="20" value="0" step="1">
-            </div>
-            <div class="eq-band">
-                <label for="high-band">Agudos</label>
-                <input type="range" id="high-band" class="eq-slider" min="-20" max="20" value="0" step="1">
-            </div>
-        </div>
-
-        <div id="volume-container">
-            <label for="volume-slider">Volumen</label>
-            <input type="range" id="volume-slider" min="0" max="1" value="1" step="0.01">
+    <div class="player-container">
+        <h1>Reproductor de Audio</h1>
+        
+        <div class="file-selector">
+            <input type="file" id="audio-file" accept=".mp3,.flac,.dsd,.cue" multiple>
+            <button id="load-btn">Cargar Archivo(s)</button>
         </div>
         
-        <div id="file-loader">
-            <label>Cargar Archivo de Audio (FLAC, WAV):</label>
-            <input type="file" id="audio-file-input" accept=".flac, .wav">
-            <br>
-            <label>Cargar Lista CUE:</label>
-            <input type="file" id="cue-file-input" accept=".cue">
+        <div class="track-info">
+            <div id="current-track">No hay archivo cargado</div>
+            <div id="track-time">00:00 / 00:00</div>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn">⏮</button>
+            <button id="play-btn">⏵</button>
+            <button id="next-btn">⏭</button>
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+        </div>
+        
+        <div class="progress-container">
+            <input type="range" id="progress" min="0" max="100" value="0" step="0.1">
+        </div>
+        
+        <div class="equalizer">
+            <h3>Ecualizador</h3>
+            <div class="eq-bands">
+                <label>Graves <input type="range" id="low" min="-20" max="20" value="0"></label>
+                <label>Medios <input type="range" id="mid" min="-20" max="20" value="0"></label>
+                <label>Agudos <input type="range" id="high" min="-20" max="20" value="0"></label>
+            </div>
+        </div>
+        
+        <div class="playlist" id="playlist">
+            <h3>Lista de reproducción</h3>
+            <ul id="track-list"></ul>
         </div>
     </div>
 
-    <!-- Librerías Externas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cue-parser-plus/dist/cue-parser-plus.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
-    <script src="app.js"></script>
-
+    <script src="cue-parser.js"></script>
+    <script src="audio-processor.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
