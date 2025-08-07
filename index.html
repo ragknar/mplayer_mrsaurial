@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Audio Avanzado</title>
+    <title>Reproductor de Audio</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,7 +12,6 @@
         
         <div class="file-selector">
             <input type="file" id="audio-file" accept=".mp3,.flac,.dsd,.cue" multiple>
-            <button id="load-btn">Cargar Archivo(s)</button>
         </div>
         
         <div class="track-info">
@@ -31,15 +30,6 @@
             <input type="range" id="progress" min="0" max="100" value="0" step="0.1">
         </div>
         
-        <div class="equalizer">
-            <h3>Ecualizador</h3>
-            <div class="eq-bands">
-                <label>Graves <input type="range" id="low" min="-20" max="20" value="0"></label>
-                <label>Medios <input type="range" id="mid" min="-20" max="20" value="0"></label>
-                <label>Agudos <input type="range" id="high" min="-20" max="20" value="0"></label>
-            </div>
-        </div>
-        
         <div class="playlist" id="playlist">
             <h3>Lista de reproducción</h3>
             <ul id="track-list"></ul>
@@ -47,7 +37,6 @@
     </div>
 
     <script src="cue-parser.js"></script>
-    <script src="audio-processor.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
