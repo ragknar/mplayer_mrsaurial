@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let currentAudio = null;
     let audioSource = null;
-    let analyser = null;
     let gainNode = null;
     let tracks = [];
     let currentTrackIndex = 0;
@@ -10,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Elementos del DOM
     const audioFileInput = document.getElementById('audio-file');
-    const loadBtn = document.getElementById('load-btn');
     const playBtn = document.getElementById('play-btn');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
@@ -20,13 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const trackTimeDisplay = document.getElementById('track-time');
     const trackList = document.getElementById('track-list');
     
-    // Ecualizador
-    const lowEq = document.getElementById('low');
-    const midEq = document.getElementById('mid');
-    const highEq = document.getElementById('high');
-    
-    // Cargar archivos de audio
-    loadBtn.addEventListener('click', () => {
+    // Configurar el input de archivo
+    audioFileInput.addEventListener('change', () => {
         const files = audioFileInput.files;
         if (files.length > 0) {
             tracks = [];
@@ -54,11 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     nextBtn.addEventListener('click', playNext);
     progressBar.addEventListener('input', seekAudio);
     volumeControl.addEventListener('input', changeVolume);
-    
-    // Ecualizador
-    lowEq.addEventListener('input', updateEqualizer);
-    midEq.addEventListener('input', updateEqualizer);
-    highEq.addEventListener('input', updateEqualizer);
     
     // Funciones
     function addAudioTrack(file) {
@@ -159,17 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
         audioSource = audioContext.createBufferSource();
         audioSource.buffer = buffer;
         
-        // Configurar el analizador y el ecualizador
-        analyser = audioContext.createAnalyser();
+        // Configurar el nodo de ganancia para el volumen
         gainNode = audioContext.createGain();
         
-        // Configurar la cadena de procesamiento de audio
-        audioSource.connect(analyser);
-        analyser.connect(gainNode);
+        // Conectar los nodos
+        audioSource.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
-        // Configurar el ecualizador
-        updateEqualizer();
         
         // Configurar el volumen
         gainNode.gain.value = volumeControl.value;
@@ -237,12 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = currentAudio;
-                audioSource.connect(analyser);
+                audioSource.connect(gainNode);
                 audioSource.start(0, cueSeekTime, cueDuration - (cueSeekTime - track.start));
             } else {
                 audioSource = audioContext.createBufferSource();
                 audioSource.buffer = currentAudio;
-                audioSource.connect(analyser);
+                audioSource.connect(gainNode);
                 audioSource.start(0, seekTime);
             }
             
@@ -257,18 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function changeVolume() {
         if (gainNode) {
             gainNode.gain.value = volumeControl.value;
-        }
-    }
-    
-    function updateEqualizer() {
-        // Implementación básica del ecualizador
-        // En una implementación real, usaríamos BiquadFilterNode
-        // Esta es una simplificación para el ejemplo
-        if (analyser && gainNode) {
-            // Aquí iría la lógica real del ecualizador
-            // Por ahora solo ajustamos el volumen general basado en los controles
-            const balance = (parseInt(lowEq.value) + parseInt(midEq.value) + parseInt(highEq.value)) / 60 + 1;
-            gainNode.gain.value = volumeControl.value * balance;
         }
     }
     
