@@ -26,21 +26,25 @@ h1, h3 {
 
 .file-selector {
     margin: 20px 0;
-    display: flex;
-    gap: 10px;
+    text-align: center;
 }
 
-button {
+input[type="file"] {
+    display: none;
+}
+
+.file-selector label {
     background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
+    display: inline-block;
 }
 
-button:hover {
+.file-selector label:hover {
     background-color: #45a049;
 }
 
@@ -64,8 +68,18 @@ button:hover {
 }
 
 .controls button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
     font-size: 1.5em;
     padding: 5px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.controls button:hover {
+    background-color: #45a049;
 }
 
 .progress-container {
@@ -87,25 +101,6 @@ input[type="range"]::-webkit-slider-thumb {
     background: #4CAF50;
     border-radius: 50%;
     cursor: pointer;
-}
-
-.equalizer {
-    margin: 20px 0;
-    padding: 10px;
-    background-color: #333;
-    border-radius: 5px;
-}
-
-.eq-bands {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-}
-
-.eq-bands label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .playlist {
