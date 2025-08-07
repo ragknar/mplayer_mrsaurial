@@ -17,29 +17,100 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTrackDisplay = document.getElementById('current-track');
     const trackTimeDisplay = document.getElementById('track-time');
     const trackList = document.getElementById('track-list');
+    // Reemplaza el event listener del input file por este código:
+let isProcessing = false;
+
+audioFileInput.addEventListener('change', async () => {
+    if (isProcessing) {
+        alert('Por favor espera, se está procesando un archivo');
+        return;
+    }
     
-    // Configurar el input de archivo
-    audioFileInput.addEventListener('change', () => {
-        const files = audioFileInput.files;
-        if (files.length > 0) {
-            tracks = [];
-            cueTracks = [];
-            trackList.innerHTML = '';
-            
-            Array.from(files).forEach(file => {
-                if (file.name.endsWith('.cue')) {
-                    parseCueFile(file);
-                } else {
-                    addAudioTrack(file);
-                }
-            });
-            
-            if (tracks.length > 0) {
-                currentTrackIndex = 0;
-                loadTrack(currentTrackIndex);
+    const files = audioFileInput.files;
+    if (files.length === 0) return;
+    
+    isProcessing = true;
+    document.body.style.cursor = 'wait';
+    playBtn.disabled = true;
+    
+    try {
+        tracks = [];
+        cueTracks = [];
+        trackList.innerHTML = '';
+        currentTrackDisplay.textContent = 'Procesando archivos...';
+        
+        // Procesar archivos en secuencia para evitar bloqueos
+        for (const file of Array.from(files)) {
+            if (file.name.endsWith('.cue')) {
+                await parseCueFile(file);
+            } else {
+                addAudioTrack(file);
             }
         }
+        
+        if (tracks.length > 0) {
+            currentTrackIndex = 0;
+            await loadTrack(currentTrackIndex);
+        }
+    } catch (error) {
+        console.error('Error al procesar archivos:', error);
+        currentTrackDisplay.textContent = 'Error al cargar archivos';
+        alert(`Error al procesar archivos: ${error.message}`);
+    } finally {
+        isProcessing = false;
+        document.body.style.cursor = '';
+        playBtn.disabled = false;
+        
+        if (tracks.length === 0) {
+            currentTrackDisplay.textContent = 'No se cargaron pistas válidas';
+        }
+    }
+});
+
+// Modifica la función parseCueFile para que sea async
+async function parseCueFile(cueFile) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+            try {
+                const cueContent = e.target.result;
+                const audioFiles = Array.from(audioFileInput.files).filter(f => !f.name.endsWith('.cue'));
+                
+                const parsedTracks = await parseCueSheet(cueContent, audioFiles);
+                cueTracks = parsedTracks;
+                
+                parsedTracks.forEach((track, index) => {
+                    tracks.push({
+                        name: track.title || `Pista ${index + 1}`,
+                        file: track.file,
+                        isCue: true,
+                        start: track.startTime,
+                        end: track.endTime
+                    });
+                    
+                    const li = document.createElement('li');
+                    li.textContent = track.title || `Pista ${index + 1} (${track.file.name})`;
+                    li.addEventListener('click', () => {
+                        currentTrackIndex = tracks.findIndex(t => t === tracks[tracks.length - parsedTracks.length + index]);
+                        loadTrack(currentTrackIndex);
+                    });
+                    trackList.appendChild(li);
+                });
+                
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = () => {
+            reject(new Error('Error al leer el archivo CUE'));
+        };
+        
+        reader.readAsText(cueFile);
     });
+}
     
     // Controles del reproductor
     playBtn.addEventListener('click', togglePlay);
