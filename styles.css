@@ -124,3 +124,30 @@ input[type="range"]::-webkit-slider-thumb {
     background-color: #4CAF50;
     color: white;
 }
+.file-selector {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.file-label {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+}
+
+.file-label:hover {
+    background-color: #45a049;
+}
+
+.file-label span {
+    pointer-events: none; /* Esto permite que el click llegue al input */
+}
+
+#audio-file {
+    display: none; /* Ocultamos el input nativo */
+}
